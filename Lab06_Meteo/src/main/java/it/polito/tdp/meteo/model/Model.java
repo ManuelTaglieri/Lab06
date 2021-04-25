@@ -16,21 +16,25 @@ public class Model {
 	private final static int NUMERO_GIORNI_TOTALI = 15;
 	
 	private MeteoDAO dati;
-	private List<Citta> citta;
+	private Map<String, Citta> citta;
 	private List<Rilevamento> rilevamenti;
+	private int costoMin;
+	private boolean nuovaCitta;
+	private int contatore;
+	private List<Citta> soluzioneFinale;
 
 	public Model() {
 		
 		this.dati = new MeteoDAO();
-		this.citta = new ArrayList<Citta>();
+		this.citta = new HashMap<String, Citta>();
 		
 		for (String s : dati.getCitta()) {
-			citta.add(new Citta(s));
+			citta.put(s, new Citta(s));
 		}
 		
 		this.rilevamenti = dati.getAllRilevamenti();
 		
-		for (Citta c : this.citta) {
+		for (Citta c : this.citta.values()) {
 			List<Rilevamento> rivPerCitta = new ArrayList<Rilevamento>();
 			for (Rilevamento r : this.rilevamenti) {
 				if (c.getNome().equals(r.getLocalita()))
@@ -38,6 +42,9 @@ public class Model {
 			}
 			c.setRilevamenti(rivPerCitta);
 		}
+		
+		this.nuovaCitta = true;
+		this.contatore = 0;
 
 	}
 
@@ -46,7 +53,7 @@ public class Model {
 		
 		String risStringa="";
 		
-		for (Citta c : citta) {
+		for (Citta c : citta.values()) {
 			List<Rilevamento> ris = dati.getAllRilevamentiLocalitaMese(mese, c.getNome());
 			float somma = 0;
 			for (Rilevamento r : ris) {
@@ -61,9 +68,64 @@ public class Model {
 	}
 	
 	// of course you can change the String output with what you think works best
-	public String trovaSequenza(int mese) {
-		return "TODO!";
+	public List<Citta> trovaSequenza(int mese) {
+		
+		List<Citta> opzioni = new ArrayList<Citta>();
+		
+		for (Citta c : citta.values()) {
+			opzioni.add(new Citta(c.getNome(), c.getRilevamentiMese(mese)));
+		}
+	
+		List<Citta> soluzione = new ArrayList<Citta>();
+		
+		this.costoMin = 400 + 15*100;
+		this.nuovaCitta = true;
+		this.contatore = 0;
+		this.soluzioneFinale = new ArrayList<Citta>();
+		ricorsivo(0, soluzione, opzioni, 0, null);
+		
+		return soluzioneFinale;
+	}
+
+	private void ricorsivo(int giorno, List<Citta> soluzione, List<Citta> opzioni, int costo, Citta cittaCorrente) {
+		if (giorno>=NUMERO_GIORNI_TOTALI) {
+			if (costo<costoMin) {
+				this.costoMin = costo;
+				this.soluzioneFinale = new ArrayList<Citta>(soluzione);
+			}
+			return;
+		} else {
+			for (Citta c : opzioni) {
+				if (giorno>2) {
+					if (soluzione.get(giorno-1).equals(soluzione.get(giorno-2)) && soluzione.get(giorno-2).equals(soluzione.get(giorno-3)))
+						nuovaCitta = true;
+					else
+						nuovaCitta = false;
+				}
+				else if (giorno == 0)
+					nuovaCitta = true;
+				else
+					nuovaCitta = false;
+				if (c.equals(cittaCorrente)) {
+					if (c.getCounter()<NUMERO_GIORNI_CITTA_MAX && (c.getRilevamenti().get(giorno).getUmidita() + costo) < costoMin) {
+						soluzione.add(c);
+						c.increaseCounter();
+						ricorsivo(giorno + 1, soluzione, opzioni, c.getRilevamenti().get(giorno).getUmidita() + costo, c);
+						c.decreaseCounter();
+						soluzione.remove(c);
+					}
+				} else {
+					if (c.getCounter()<NUMERO_GIORNI_CITTA_MAX && (c.getRilevamenti().get(giorno).getUmidita() + costo + COST) < costoMin && nuovaCitta) {
+						soluzione.add(c);
+						c.increaseCounter();
+						ricorsivo(giorno + 1, soluzione, opzioni, c.getRilevamenti().get(giorno).getUmidita() + costo + 100, c);
+						c.decreaseCounter();
+						soluzione.remove(c);
+					}
+				}
+			}
+		}
 	}
 	
-
 }
+
