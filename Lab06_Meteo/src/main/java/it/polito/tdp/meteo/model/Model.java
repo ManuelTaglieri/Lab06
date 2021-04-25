@@ -83,6 +83,7 @@ public class Model {
 		this.contatore = 0;
 		this.soluzioneFinale = new ArrayList<Citta>();
 		ricorsivo(0, soluzione, opzioni, 0, null);
+		System.out.println(costoMin);
 		
 		return soluzioneFinale;
 	}
@@ -118,7 +119,7 @@ public class Model {
 					if (c.getCounter()<NUMERO_GIORNI_CITTA_MAX && (c.getRilevamenti().get(giorno).getUmidita() + costo + COST) < costoMin && nuovaCitta) {
 						soluzione.add(c);
 						c.increaseCounter();
-						ricorsivo(giorno + 1, soluzione, opzioni, c.getRilevamenti().get(giorno).getUmidita() + costo + 100, c);
+						ricorsivo(giorno + 1, soluzione, opzioni, c.getRilevamenti().get(giorno).getUmidita() + costo + COST, c);
 						c.decreaseCounter();
 						soluzione.remove(c);
 					}
