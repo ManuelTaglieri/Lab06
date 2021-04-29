@@ -113,7 +113,7 @@ public class Model {
 						c.increaseCounter();
 						ricorsivo(giorno + 1, soluzione, opzioni, c.getRilevamenti().get(giorno).getUmidita() + costo, c);
 						c.decreaseCounter();
-						soluzione.remove(c);
+						soluzione.remove(soluzione.size()-1);
 					}
 				} else {
 					if (c.getCounter()<NUMERO_GIORNI_CITTA_MAX && (c.getRilevamenti().get(giorno).getUmidita() + costo + COST) < costoMin && nuovaCitta) {
@@ -121,7 +121,7 @@ public class Model {
 						c.increaseCounter();
 						ricorsivo(giorno + 1, soluzione, opzioni, c.getRilevamenti().get(giorno).getUmidita() + costo + COST, c);
 						c.decreaseCounter();
-						soluzione.remove(c);
+						soluzione.remove(soluzione.size()-1);
 					}
 				}
 			}
